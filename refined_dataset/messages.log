@@ -1,0 +1,57 @@
+40000 Opened /usr/testbed/images/UBUNTU16-64-X86/UBUNTU16-64-X86.ndz:19: 726016 blocks (743440384 bytes)
+40000 Client 2036678553 Performance:
+40000   runtime:                135.883 sec
+40000   start delay:            0.000 sec
+40000   real data written:      2644668416 (19590136 Bps)
+40000   effective data written: 17179869184 (127258290 Bps)
+40000 Client 2036678553 Params:
+40000   chunk/block size:     1024/1024
+40000   chunk buffers:        709
+40000   disk buffering (MB):  32058
+40000   sockbuf size (KB):    1024
+40000   readahead/inprogress: 2/8
+40000   recv timo/count:      30000/3
+40000   re-request delay:     1000000
+40000   writer idle delay:    1000
+40000   randomize requests:   1
+40000 Client 2036678553 Stats:
+40000   net thread idle/blocked:        1/0
+40000   decompress thread idle/blocked: 703/0
+40000   disk thread idle:        4495
+40000   join/request msgs:       198/709
+40000   dupblocks(chunk done):   0
+40000   dupblocks(in progress):  0
+40000   partial requests/blocks: 0/0
+40000   re-requests:             0
+40000   full chunk re-requests:  0
+40000   partially-filled drops:  0
+40000 No requests or reports for 182 seconds (0 remaining clients)
+40000 Params:
+40000   chunk/block size    1024/1024
+40000   sockbuf size        1024 KB
+40000   burst size/interval 21/1000
+40000   bandwidth           192.528 Mbit/sec
+40000   file read size      32 blocks
+40000   file:size           /usr/testbed/images/UBUNTU16-64-X86/UBUNTU16-64-X86.ndz:19:743440384
+40000 Stats:
+40000   service time:      135.882 sec
+40000   user/sys CPU time: 89.064/199.980
+40000   max/total clients: 1/1
+40000   msgs in/out:       910/726214
+40000   joins/leaves:      198/1
+40000   reports recv/log:  2/2
+40000   requests:          709 (0 merged in queue)
+40000   partial req/blks:  0/0
+40000   duplicate req:     0
+40000   client re-req:     0
+40000   1k blocks sent:    726016 (0 repeated)
+40000   block write time:  3.837 sec (5 us/op, 378 us max, 0 1ms+)
+40000   file reads:        22688 (743440384 bytes, 0 repeated)
+40000   file read time:    0.233 sec (10 us/op, 325 us max)
+40000   net idle/blocked:  199/0
+40000   send intvl/missed: 34572/8
+40000   sendbuf overruns:  0
+40000   spurious wakeups:  0
+40000   max workq size:    2 elts, 1024 blocks
+40000 Exiting!
+
