@@ -81,8 +81,11 @@ def print_client_server_stats (server_list):
 
     no_of_blocks_unicast = no_of_clients * s.imageblocks
     multicast_savings = (no_of_blocks_unicast - s.totalblocks_sent)
+    #print ((no_of_blocks_unicast/s.totalblocks_sent)-1)
+    print (no_of_clients)
     #print (no_of_clients,",",(no_of_blocks_unicast/s.totalblocks_sent)-1)
     #print (s.imageblocks/1024,"MB")
+    '''
     for kk, c in s.client_list.items ():
       print (s.imageblocks/1024, ",", c.runtime)
       print ("\nServer Id               : ", s.serverid)
@@ -96,7 +99,7 @@ def print_client_server_stats (server_list):
       for kk, c in s.client_list.items ():
         print ("    Client ID       : ", c.clientid)
         print ("    Runtime         : ", c.runtime)
-  
+    '''
   print ("\nNumber of servers with 0 clients : ", len(servers_with_no_clients))
   print ("List of them                     : ", servers_with_no_clients)
 
@@ -115,10 +118,10 @@ def main_function ():
   server_list, run_statistics = begin_extracting ("messages.log") 
   
   #Print time taken analysis statistics
-  print_runtime_statistics (run_statistics)
+  #print_runtime_statistics (run_statistics)
 
   #Print client server stats
-  #print_client_server_stats (server_list)
+  print_client_server_stats (server_list)
 
   #Print only runtime
   #print_only_runtime (server_list)
