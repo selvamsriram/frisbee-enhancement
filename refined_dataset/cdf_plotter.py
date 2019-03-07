@@ -5,10 +5,50 @@ def plot_runtime ():
   r_data = np.loadtxt("runtime.data")
   sorted_r_data = np.sort(r_data)
   yvals=np.arange(len(sorted_r_data))/float(len(sorted_r_data)-1)
-  plt.plot(sorted_r_data,yvals)
+  plt.plot(sorted_r_data,yvals, label='Runtime')
+  plt.legend()
+  plt.xlabel ("Client Runtime (in Seconds)")
+  plt.ylabel ("Probability")
   plt.show()
+  plt.savefig('runtime_cdf.png')
+
+def plot_image_size():
+  r_data = np.loadtxt("image_size.data")
+  sorted_r_data = np.sort(r_data)
+  yvals=np.arange(len(sorted_r_data))/float(len(sorted_r_data)-1)
+  plt.plot(sorted_r_data,yvals, label='Image Size (MB)')
+  plt.legend()
+  plt.xlabel ("Image Size (MB)")
+  plt.ylabel ("Probability")
+  #plt.show()
+  plt.savefig('image_size_cdf.png')
+
+def plot_mcast_benefit():
+  plt.clf ()
+  r_data = np.loadtxt("mcast_benefit.data")
+  sorted_r_data = np.sort(r_data)
+  yvals=np.arange(len(sorted_r_data))/float(len(sorted_r_data)-1)
+  plt.plot(sorted_r_data,yvals, label='Mcast benefit')
+  plt.legend()
+  plt.xlabel ("Mcast Benefit")
+  plt.ylabel ("Probability")
+  #plt.show()
+  plt.savefig('mcast_benefit_cdf.png')
+
+def plot_num_clients():
+  plt.clf ()
+  r_data = np.loadtxt("num_clients.data")
+  sorted_r_data = np.sort(r_data)
+  yvals=np.arange(len(sorted_r_data))/float(len(sorted_r_data)-1)
+  plt.plot(sorted_r_data,yvals, label='Number of Clients')
+  plt.legend()
+  plt.xlabel ("Number of clients")
+  plt.ylabel ("Probability")
+  #plt.show()
+  plt.savefig('number_of_clients_cdf.png')
 
 def plot_mcast_vs_clients ():
+  plt.clf ()
   m_data = np.loadtxt ("mcast_benefit.data")
   c_data = np.loadtxt ("num_clients.data")
 
@@ -23,10 +63,14 @@ def plot_mcast_vs_clients ():
   plt.legend()
   plt.xlabel("Num of clients/Mcast Benefit")
   plt.ylabel("Probability")
-  plt.show()
+  #plt.show()
+  plt.savefig('mcast_vs_clients.png')
 
 def main():
-  #plot_runtime ()
-  plot_mcast_vs_clients ()
+  plot_runtime ()
+  #plot_mcast_benefit ()
+  #plot_num_clients ()
+  #plot_image_size()
+  #plot_mcast_vs_clients ()
 
 main()
