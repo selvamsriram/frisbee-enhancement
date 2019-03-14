@@ -109,9 +109,8 @@ def print_client_server_stats (server_list):
     #print (no_of_clients)
 
     #image_size.data
-    print (s.imageblocks/1024)
+    #print (s.imageblocks/1024)
 
-    '''
     print ("\nServer Id               : ", s.serverid)
     print ("Serving Image             : ", s.image_name)
     print ("Total clients served      : ", no_of_clients)
@@ -124,7 +123,6 @@ def print_client_server_stats (server_list):
       #print (s.imageblocks/1024, ",", c.runtime)
       print ("    Client ID       : ", c.clientid)
       print ("    Runtime         : ", c.runtime)
-    '''
   print ("\nNumber of servers with 0 clients : ", len(servers_with_no_clients))
   print ("List of them                     : ", servers_with_no_clients)
 
@@ -135,13 +133,6 @@ def print_only_runtime (server_list):
       #print ("time :", c.runtime, "size : ", s.imageblocks/1024,"MB")
       print (c.runtime)
       #print (s.imageblocks/1024,"MB")
-    '''
-    for kk1, c in s.client_list.items ():
-      for kk2, c in s.client_list.items ():
-        print (c.runtime)
-    #print (s.imageblocks/1024,"MB")
-    '''
-
 
 #----------------------------------------------------------------------------------------------------------------
 def plot_box_whisker (run_statistics):
@@ -163,7 +154,7 @@ def plot_box_whisker (run_statistics):
   plt.xlabel ("Image size (MB)")
   plt.ylabel ("Time taken (Seconds)")
   plt.savefig('boxplot.png')
-  #plt.show ()
+  plt.show ()
 
 #----------------------------------------------------------------------------------------------------------------
 #Main function
@@ -180,6 +171,6 @@ def main_function ():
   #print_only_runtime (server_list)
 
   #Plot the box and whisker
-  plot_box_whisker (run_statistics)
+  #plot_box_whisker (run_statistics)
 #----------------------------------------------------------------------------------------------------------------
 main_function ()

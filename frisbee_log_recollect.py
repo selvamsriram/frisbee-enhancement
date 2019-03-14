@@ -48,14 +48,16 @@ def collect_data_per_node (es, image_name):
          "query": {
                    "bool": { 
                             "must": [
-                                    #{ "match": { "source":   "frisbeed.log"}},               # This is for boss.utah.cloudlab.us 
-                                     { "match": { "source":   "frisbeed-archive.log"}},       # This is for boss.emulab.net
+                                     { "match": { "source":   "frisbeed.log"}},               # This is for boss.utah.cloudlab.us and boss.wisc.cloudlab.us
+                                    #{ "match": { "source":   "frisbeed-archive.log"}},       # This is for boss.emulab.net
                                     #{ "match": { "beat.hostname": "boss.utah.cloudlab.us" }}
-                                     { "match": { "beat.hostname": "boss.emulab.net" }}
+                                    #{ "match": { "beat.hostname": "boss.emulab.net" }}
+                                     { "match": { "beat.hostname": "boss.wisc.cloudlab.us" }}
+                                    #{ "match": { "beat.hostname": "boss.clemson.cloudlab.us" }}
                                     ],
                             "filter": [ 
                                     #{ "range": { "@timestamp": { "gte": "2019-01-21", "lte": "2019-01-25", "time_zone": "-06:00"}}}
-                                     { "range": { "@timestamp": { "gte": "2018-01-02", "time_zone": "-06:00"}}}
+                                     { "range": { "@timestamp": { "gte": "2019-02-01", "time_zone": "-06:00"}}}
                                       ]
                           }
                 },

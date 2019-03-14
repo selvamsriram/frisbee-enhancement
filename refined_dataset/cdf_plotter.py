@@ -20,7 +20,7 @@ def plot_image_size():
   plt.legend()
   plt.xlabel ("Image Size (MB)")
   plt.ylabel ("Probability")
-  #plt.show()
+  plt.show()
   plt.savefig('image_size_cdf.png')
 
 def plot_mcast_benefit():
@@ -32,7 +32,7 @@ def plot_mcast_benefit():
   plt.legend()
   plt.xlabel ("Mcast Benefit")
   plt.ylabel ("Probability")
-  #plt.show()
+  plt.show()
   plt.savefig('mcast_benefit_cdf.png')
 
 def plot_num_clients():
@@ -44,7 +44,7 @@ def plot_num_clients():
   plt.legend()
   plt.xlabel ("Number of clients")
   plt.ylabel ("Probability")
-  #plt.show()
+  plt.show()
   plt.savefig('number_of_clients_cdf.png')
 
 def plot_mcast_vs_clients ():
@@ -68,9 +68,9 @@ def plot_mcast_vs_clients ():
 
 def main():
   plot_runtime ()
-  #plot_mcast_benefit ()
-  #plot_num_clients ()
-  #plot_image_size()
+  plot_mcast_benefit ()
+  plot_num_clients ()
+  plot_image_size()
   #plot_mcast_vs_clients ()
 
 main()
