@@ -12,6 +12,17 @@ def plot_runtime ():
   plt.show()
   plt.savefig('runtime_cdf.png')
 
+def plot_disk_idle ():
+  r_data = np.loadtxt("disk_thread_idle.data")
+  sorted_r_data = np.sort(r_data)
+  yvals=np.arange(len(sorted_r_data))/float(len(sorted_r_data)-1)
+  plt.plot(sorted_r_data,yvals, label='Disk Thread Idle (Ticks)')
+  plt.legend()
+  plt.xlabel ("Disk Thread Idle (Ticks)")
+  plt.ylabel ("Probability")
+  plt.show()
+  #plt.savefig('image_size_cdf.png')
+
 def plot_image_size():
   r_data = np.loadtxt("image_size.data")
   sorted_r_data = np.sort(r_data)
@@ -67,10 +78,11 @@ def plot_mcast_vs_clients ():
   plt.savefig('mcast_vs_clients.png')
 
 def main():
-  plot_runtime ()
-  plot_mcast_benefit ()
-  plot_num_clients ()
-  plot_image_size()
+  #plot_runtime ()
+  #plot_mcast_benefit ()
+  #plot_num_clients ()
+  #plot_image_size()
+  plot_disk_idle ()
   #plot_mcast_vs_clients ()
 
 main()

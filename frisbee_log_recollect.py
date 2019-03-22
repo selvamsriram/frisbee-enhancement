@@ -42,7 +42,7 @@ def is_no_timestamp (hit):
 
 #------------------------------------------------------------------------------
 # Collect data per node from Kibana
-def collect_data_per_node (es, image_name):
+def collect_data_per_node (es):
   data = es.search(index="_all", scroll = '2m', body = 
         {
          "query": {
@@ -50,14 +50,14 @@ def collect_data_per_node (es, image_name):
                             "must": [
                                      { "match": { "source":   "frisbeed.log"}},               # This is for boss.utah.cloudlab.us and boss.wisc.cloudlab.us
                                     #{ "match": { "source":   "frisbeed-archive.log"}},       # This is for boss.emulab.net
-                                    #{ "match": { "beat.hostname": "boss.utah.cloudlab.us" }}
+                                     { "match": { "beat.hostname": "boss.utah.cloudlab.us" }}
                                     #{ "match": { "beat.hostname": "boss.emulab.net" }}
-                                     { "match": { "beat.hostname": "boss.wisc.cloudlab.us" }}
+                                    #{ "match": { "beat.hostname": "boss.wisc.cloudlab.us" }}
                                     #{ "match": { "beat.hostname": "boss.clemson.cloudlab.us" }}
                                     ],
                             "filter": [ 
                                     #{ "range": { "@timestamp": { "gte": "2019-01-21", "lte": "2019-01-25", "time_zone": "-06:00"}}}
-                                     { "range": { "@timestamp": { "gte": "2019-02-01", "time_zone": "-06:00"}}}
+                                     { "range": { "@timestamp": { "gte": "2019-01-01", "time_zone": "-06:00"}}}
                                       ]
                           }
                 },
@@ -94,8 +94,9 @@ def collect_data_per_node (es, image_name):
 
 #------------------------------------------------------------------------------
 # Main function starts here
+print ("Did you delete the messages.log before starting?")
 es  = Elasticsearch()
-collected_data = collect_data_per_node (es, "IMAGE_NAME")
+collected_data = collect_data_per_node (es)
 #print ("Collected total lines :", len(collected_data))
 
 # Start the processing and dumping of log messages.

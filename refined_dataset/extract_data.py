@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import statistics
 
 class server:
   def __init__(self, serverid):
@@ -22,6 +23,12 @@ class run_stats:
     self.min_time         = float("inf")
     self.max_time         = 0
     self.timelist         = []
+
+class image_based_run_stats:
+  def __init__ (self, key):
+    self.image_name   = key
+    self.timelist     = []
+
 #----------------------------------------------------------------------------------------------------------------
 def remove_prefix_in_loglien (line):
   words = line.split ()
@@ -127,6 +134,28 @@ def print_client_server_stats (server_list):
   print ("List of them                     : ", servers_with_no_clients)
 
 #----------------------------------------------------------------------------------------------------------------
+def get_image_based_stats (server_list):
+  image_based_stats = {}
+
+  for k, s in server_list.items ():
+    if (s.imageblocks == 0):
+      continue
+
+    no_of_clients = len (s.client_list)
+    if (no_of_clients == 0):
+      continue
+
+    if s.image_name not in image_based_stats:
+      i_stats = image_based_run_stats (s.image_name)
+      image_based_stats[s.image_name] = i_stats
+    else:
+      i_stats = image_based_stats[s.image_name]
+
+    for kk, c in s.client_list.items ():
+      i_stats.timelist.append (c.runtime)
+
+  return image_based_stats
+#----------------------------------------------------------------------------------------------------------------
 def print_only_runtime (server_list):
   for k, s in server_list.items ():
     for kk1, c in s.client_list.items ():
@@ -156,6 +185,48 @@ def plot_box_whisker (run_statistics):
   plt.savefig('boxplot.png')
   plt.show ()
 
+def extract_image_name_from_line (line):
+  words = line.split ("/")
+  return (words[len(words)-1])
+
+def image_based_box_whisker (run_stats):
+  list_of_times = []
+  list_of_names = []
+  keylist = sorted (run_stats)
+
+  for kkk in keylist:
+    i_stat = run_stats[kkk]
+    list_of_names.append (extract_image_name_from_line (i_stat.image_name))
+    list_of_times.append (i_stat.timelist)
+
+  fig = plt.figure(1, figsize=(30, 30))
+  ax = fig.add_subplot(111)
+  bp = ax.boxplot(list_of_times)
+  print (len(list_of_names))
+
+  ax.set_xticklabels(list_of_names, rotation=40, ha="right")
+  plt.title ("Image vs Time taken")
+  plt.xlabel ("Image")
+  plt.ylabel ("Time taken (Seconds)")
+  plt.savefig('boxplot.png')
+  plt.show ()
+
+#----------------------------------------------------------------------------------------------------------------
+def print_image_based_stats (i_run_stats):
+  list_of_times = []
+  list_of_names = []
+  keylist = sorted (i_run_stats)
+
+  for kkk in keylist:
+    i_stat = i_run_stats[kkk]
+    print ("Image Name         : ", extract_image_name_from_line (i_stat.image_name))
+    i_stat.timelist.sort ()
+    print ("Min time taken     : ", i_stat.timelist[0])
+    print ("Max time taken     : ", i_stat.timelist[len(i_stat.timelist)-1])
+    print ("Median time taken  : ", statistics.median (i_stat.timelist))
+    print ("Best to worst diff : ", i_stat.timelist[len(i_stat.timelist)-1] - i_stat.timelist[0])
+    print ("\n")
+ 
 #----------------------------------------------------------------------------------------------------------------
 #Main function
 def main_function ():
@@ -165,12 +236,18 @@ def main_function ():
   #print_runtime_statistics (run_statistics)
 
   #Print client server stats
-  print_client_server_stats (server_list)
+  #print_client_server_stats (server_list)
 
   #Print only runtime
   #print_only_runtime (server_list)
 
   #Plot the box and whisker
   #plot_box_whisker (run_statistics)
+
+  #Image based boxplot and whisker
+  i_run_stats = get_image_based_stats (server_list)
+  #image_based_box_whisker (i_run_stats)
+  print_image_based_stats (i_run_stats)
+
 #----------------------------------------------------------------------------------------------------------------
 main_function ()
