@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import statistics
+import datetime
 
 class server:
   def __init__(self, serverid):
@@ -10,11 +11,17 @@ class server:
     self.image_name = ""
     self.client_list = {}
     self.last_client = 0
+    self.active_clients = 0
+    self.something_wrong = False
 
 class client:
   def __init__(self, clientid):
     self.clientid = clientid
     self.runtime = 0
+    self.total_concurrent_overlap_time = 0
+    self.concurrency_percentage = 0
+    self.concurrent_start = None
+    self.active = True 
 
 class run_stats:
   def __init__(self, key):
@@ -32,31 +39,97 @@ class image_based_run_stats:
 #----------------------------------------------------------------------------------------------------------------
 def remove_prefix_in_loglien (line):
   words = line.split ()
-  return words
+  time_str = words[0] + " " + words[1] + " 2019 " + words[2]
+  w4_1 = words[4].split('[')
+  w4_2 = w4_1[1].split(']')
 
+  ret_words = []
+  ret_words.append (w4_2[0])
+  for i in range (5, len(words)):
+    ret_words.append (words[i])
+
+  time = datetime.datetime.strptime(time_str, '%b %d %Y %H:%M:%S')
+  return time, ret_words 
+
+#----------------------------------------------------------------------------------------------------------------
+def add_concurrency_to_existing_client (server, time):
+  for kk, c in server.client_list.items ():
+    if (c.active == True) and (c.concurrent_start == None):
+      c.concurrent_start = time
+
+#----------------------------------------------------------------------------------------------------------------
+def remove_concurrency_from_existing_client (server, time):
+  for kk, c in server.client_list.items ():
+    if (c.active == True) and (c.concurrent_start != None):
+      diff = time - c.concurrent_start
+      c.total_concurrent_overlap_time += diff.total_seconds ()
+      c.concurrent_start = None 
+
+#----------------------------------------------------------------------------------------------------------------
 def begin_extracting (filename):
   server_list = {}
   run_statistics = {}
 
   with open (filename) as file:
     for line in file:
-      words = remove_prefix_in_loglien (line)
+      time, words = remove_prefix_in_loglien (line)
       #New server being opened
       if (len (words) > 1) and (words[1] == "Opened"):
         s = server (words[0])
         s.imageblocks = int (words[3])
         s.image_name = words[2]
         server_list[words[0]] = s
-      
+
+      elif (len(words) > 6) and (words[6] == "joins") and (words[2] == "(id"):
+        if (words[0] not in server_list):
+          s = server (words[0])
+          server_list[words[0]] = s
+        s = server_list [words[0]]
+
+        words[3] = words[3][0:len(words[3])-1]
+        #If client is not there already create it
+        if words[3] not in s.client_list: 
+          c = client(words[3])
+          s.client_list[words[3]] = c
+          c = s.client_list[words[3]]
+          #There is already a client in the server, so this client is concurrent with that one.
+          if (s.active_clients > 0):      
+            c.concurrent_start = time 
+            if (s.active_clients == 1):
+              #The existing client will now have concurrency update that
+              add_concurrency_to_existing_client (s, time)
+
+          #Increment the active client count
+          s.active_clients += 1 
+
       elif (len(words) > 3) and (words[1] == "Client") and (words[3] == "Performance:"):
         if (words[0] not in server_list):
           s = server (words[0])
           server_list[words[0]] = s
         s = server_list [words[0]]
-        c = client(words[2])
-        s.client_list[words[2]] = c
-        s.last_client = words[2]
 
+        if words[2] not in s.client_list: #If client is not there already create it
+          c = client(words[2])
+          s.client_list[words[2]] = c
+        c = s.client_list[words[2]]
+        
+        #Consider the end of concurrent time and account it
+        if (c.concurrent_start != None):
+          diff = time - c.concurrent_start
+          c.total_concurrent_overlap_time += diff.total_seconds ()
+          c.concurrent_start = None 
+
+        #Set the client as inactive
+        c.active = False
+
+        #Decrement the active client count 
+        s.active_clients -= 1 
+        if (s.active_clients == 1):
+          #The last concurrent client is gone, so remove the concurrency now for other dependent clients
+          remove_concurrency_from_existing_client (s, time)
+
+        s.last_client = words[2]
+       
       elif (len(words) > 1) and (words[1] == "runtime:"):
         if (words[0] not in server_list):
           s = server (words[0])
@@ -64,6 +137,12 @@ def begin_extracting (filename):
         s = server_list [words[0]]
         c = s.client_list[s.last_client]
         c.runtime = float(words[2])
+
+        #Account the total concurrency percentage
+        c.concurrency_percentage = (c.total_concurrent_overlap_time/c.runtime) * 100
+        if (c.concurrency_percentage > 100):
+          c.concurrency_percentage = 100
+
         key = int(((s.imageblocks/1024)-1)/100)
         if key not in run_statistics:
           rs = run_stats (key)
@@ -125,11 +204,21 @@ def print_client_server_stats (server_list):
     print ("Total blocks on multicast : ", s.totalblocks_sent)
     print ("Total blocks on unicast   : ", no_of_blocks_unicast)
     print ("Saving using multicast    : ", multicast_savings)
-    print ("Ucast/Mcast ratio         : ", no_of_blocks_unicast/s.totalblocks_sent)
+    if (s.totalblocks_sent != 0):
+      print ("Ucast/Mcast ratio         : ", no_of_blocks_unicast/s.totalblocks_sent)
+      print ("Something wrong           : False")
+    else:
+      s.something_wrong = True
+      print ("Something wrong           : True")
+
     for kk, c in s.client_list.items ():
       #print (s.imageblocks/1024, ",", c.runtime)
       print ("    Client ID       : ", c.clientid)
       print ("    Runtime         : ", c.runtime)
+      print ("    Concurrent time : ", c.total_concurrent_overlap_time)
+      print ("    Concurrency     : ", c.concurrency_percentage, "%")
+      print ("    Concurrent Start: ", c.concurrent_start)
+
   print ("\nNumber of servers with 0 clients : ", len(servers_with_no_clients))
   print ("List of them                     : ", servers_with_no_clients)
 
@@ -236,7 +325,7 @@ def main_function ():
   #print_runtime_statistics (run_statistics)
 
   #Print client server stats
-  #print_client_server_stats (server_list)
+  print_client_server_stats (server_list)
 
   #Print only runtime
   #print_only_runtime (server_list)
@@ -245,9 +334,9 @@ def main_function ():
   #plot_box_whisker (run_statistics)
 
   #Image based boxplot and whisker
-  i_run_stats = get_image_based_stats (server_list)
+  #i_run_stats = get_image_based_stats (server_list)
   #image_based_box_whisker (i_run_stats)
-  print_image_based_stats (i_run_stats)
+  #print_image_based_stats (i_run_stats)
 
 #----------------------------------------------------------------------------------------------------------------
 main_function ()
