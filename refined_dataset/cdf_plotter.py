@@ -77,12 +77,24 @@ def plot_mcast_vs_clients ():
   #plt.show()
   plt.savefig('mcast_vs_clients.png')
 
+def plot_concurrency():
+  r_data = np.loadtxt("concurrency_cdf.data")
+  sorted_r_data = np.sort(r_data)
+  yvals=np.arange(len(sorted_r_data))/float(len(sorted_r_data)-1)
+  plt.plot(sorted_r_data,yvals, label='Concurrency')
+  plt.legend()
+  plt.xlabel ("% of concurrency")
+  plt.ylabel ("Probability")
+  plt.show()
+  plt.savefig('concurrency_cdf.png')
+
 def main():
   #plot_runtime ()
   #plot_mcast_benefit ()
   #plot_num_clients ()
   #plot_image_size()
-  plot_disk_idle ()
+  #plot_disk_idle ()
   #plot_mcast_vs_clients ()
+  plot_concurrency ()
 
 main()
