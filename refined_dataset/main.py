@@ -14,6 +14,7 @@ client_concurrency_cdf_data_file = "client_concurrency_cdf_input.data"
 file_read_time_data_file = "file_read_time.data"
 file_size_data_file = "file_size.data"
 file_repeated_read_data_file = "file_read_repeated.data"
+eliminated_server_list = [97749, 10800]
 
 #-----------------------------------------------------------------------------------
 #CLI Commands
@@ -25,8 +26,8 @@ parser.add_argument ("-rcdf", "--runtime-cdf", help="CDF of client runtime", act
 parser.add_argument ("-mcdf", "--mcast-cdf", help="CDF of multicast benefit", action="store_true")
 parser.add_argument ("-ncdf", "--nclients-cdf", help="CDF of number of clients", action="store_true")
 parser.add_argument ("-iscdf", "--image-size-cdf", help="CDF of image sizes served by various frisbee instances", action="store_true")
-parser.add_argument ("-dicdf", "--disk-idle-cdf", help="CDF of disk idle thread stats", action="store_true")
 parser.add_argument ("-ccdf", "--concurrency-cdf", help="CDF of client concurrency", action="store_true")
+parser.add_argument ("-dicdf", "--disk-idle-cdf", help="CDF of disk idle thread stats", action="store_true")
 parser.add_argument ("-frscatter", "--file-read-scatter-plot", help="Scatter plot of file read stats", action="store_true")
 #parser.add_argument ("-cache", "--cache-enabled", help="Use saved data from prev run to make CDFs and charts", action="store_true")
 #parser.add_argument ("-ucache", "--update-cache", help="Update cache in this run", action="store_true")
@@ -46,6 +47,18 @@ if (args.ifile != None):
     ed.print_client_server_stats (server_list)
   else:
     ed.write_client_server_stats (server_list, args.ofile)
+  #Update cache file
+  ed.create_all_data_files (server_list,
+                            eliminated_server_list,
+                            runtime_cdf_data_file,
+                            mcast_benefit_cdf_data_file,
+                            num_clients_cdf_data_file,
+                            image_size_cdf_data_file,
+                            disk_thread_idle_cdf_data_file,
+                            client_concurrency_cdf_data_file,
+                            file_read_time_data_file,
+                            file_size_data_file,
+                            file_repeated_read_data_file)
 #-----------------------------------------------------------------------------------
 #Box-Whisker Plot Image size vs Time taken
 if (args.boxplot == True):

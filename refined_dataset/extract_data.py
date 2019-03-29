@@ -178,7 +178,7 @@ def begin_extracting (filename):
           server_list[words[0]] = s
         s = server_list [words[0]]
         s.file_read_time = float (words[4])
-        s.file_size_in_mb = s.imageblocks/ (1024*1024)
+        s.file_size_in_mb = s.imageblocks/ (1024)
 
   return server_list, run_statistics 
 
@@ -203,15 +203,6 @@ def print_client_server_stats (server_list):
 
     no_of_blocks_unicast = no_of_clients * s.imageblocks
     multicast_savings = (no_of_blocks_unicast - s.totalblocks_sent)
-
-    #mcast_benefit.data
-    #print ((no_of_blocks_unicast/s.totalblocks_sent)-1)
-
-    #num_clients.data
-    #print (no_of_clients)
-
-    #image_size.data
-    #print (s.imageblocks/1024)
 
     print ("\nServer Id               : ", s.serverid)
     print ("Serving Image             : ", s.image_name)
@@ -263,41 +254,52 @@ def write_client_server_stats (server_list, op_filename):
     no_of_blocks_unicast = no_of_clients * s.imageblocks
     multicast_savings = (no_of_blocks_unicast - s.totalblocks_sent)
 
-    #mcast_benefit.data
-    #print ((no_of_blocks_unicast/s.totalblocks_sent)-1)
-
-    #num_clients.data
-    #print (no_of_clients)
-
-    #image_size.data
-    #print (s.imageblocks/1024)
-
-    fhandle.write ("\nServer Id               : ", s.serverid)
-    fhandle.write ("Serving Image             : ", s.image_name)
-    fhandle.write ("Total clients served      : ", no_of_clients)
-    fhandle.write ("File read time            : ", s.file_read_time)
-    fhandle.write ("File size in MB           : ", s.file_size_in_mb)
-    fhandle.write ("File repeated reads       : ", s.file_reread)
-    fhandle.write ("Total blocks on image     : ", s.imageblocks)
-    fhandle.write ("Total blocks on multicast : ", s.totalblocks_sent)
-    fhandle.write ("Total blocks on unicast   : ", no_of_blocks_unicast)
-    fhandle.write ("Saving using multicast    : ", multicast_savings)
+    fhandle.write ("\nServer Id               : " + str(s.serverid))
+    fhandle.write ("\n")
+    fhandle.write ("Serving Image             : " + s.image_name)
+    fhandle.write ("\n")
+    fhandle.write ("Total clients served      : " + str(no_of_clients))
+    fhandle.write ("\n")
+    fhandle.write ("File read time            : " + str(s.file_read_time))
+    fhandle.write ("\n")
+    fhandle.write ("File size in MB           : " + str(s.file_size_in_mb))
+    fhandle.write ("\n")
+    fhandle.write ("File repeated reads       : " + str(s.file_reread))
+    fhandle.write ("\n")
+    fhandle.write ("Total blocks on image     : " + str(s.imageblocks))
+    fhandle.write ("\n")
+    fhandle.write ("Total blocks on multicast : " + str(s.totalblocks_sent))
+    fhandle.write ("\n")
+    fhandle.write ("Total blocks on unicast   : " + str(no_of_blocks_unicast))
+    fhandle.write ("\n")
+    fhandle.write ("Saving using multicast    : " + str(multicast_savings))
+    fhandle.write ("\n")
     if (s.totalblocks_sent != 0):
-      fhandle.write ("Ucast/Mcast ratio         : ", no_of_blocks_unicast/s.totalblocks_sent)
+      fhandle.write ("Ucast/Mcast ratio         : " + str(no_of_blocks_unicast/s.totalblocks_sent))
+      fhandle.write ("\n")
       fhandle.write ("Something wrong           : False")
+      fhandle.write ("\n")
     else:
       s.something_wrong = True
       fhandle.write ("Something wrong           : True")
+      fhandle.write ("\n")
 
     for kk, c in s.client_list.items ():
-      fhandle.write ("    Client ID       : ", c.clientid)
-      fhandle.write ("    Runtime         : ", c.runtime)
-      fhandle.write ("    Concurrent time : ", c.total_concurrent_overlap_time)
-      fhandle.write ("    Concurrency     : ", c.concurrency_percentage, "%")
-      fhandle.write ("    Concurrent Start: ", c.concurrent_start)
+      fhandle.write ("    Client ID       : "+ str(c.clientid))
+      fhandle.write ("\n")
+      fhandle.write ("    Runtime         : "+ str(c.runtime))
+      fhandle.write ("\n")
+      fhandle.write ("    Concurrent time : "+ str(c.total_concurrent_overlap_time))
+      fhandle.write ("\n")
+      fhandle.write ("    Concurrency     : "+ str(c.concurrency_percentage) + "%")
+      fhandle.write ("\n")
+      fhandle.write ("    Concurrent Start: "+ str(c.concurrent_start))
+      fhandle.write ("\n")
 
-  fhandle.write ("\nNumber of servers with 0 clients : ", len(servers_with_no_clients))
-  fhandle.write ("List of them                     : ", servers_with_no_clients)
+  fhandle.write ("\nNumber of servers with 0 clients : " + str(len(servers_with_no_clients)))
+  fhandle.write ("\n")
+  fhandle.write ("List of them                     : " + str(servers_with_no_clients))
+  fhandle.write ("\n")
 
 #----------------------------------------------------------------------------------------------------------------
 def get_image_based_stats (server_list):
@@ -394,7 +396,60 @@ def print_image_based_stats (i_run_stats):
     print ("\n")
  
 #----------------------------------------------------------------------------------------------------------------
+#Create all data files needed for CDF and other outputs
+def create_all_data_files (server_list,
+                           eliminated_server_list,
+                           runtime_cdf_data_file, 
+                           mcast_benefit_cdf_data_file,
+                           num_clients_cdf_data_file,
+                           image_size_cdf_data_file,
+                           disk_thread_idle_cdf_data_file,
+                           client_concurrency_cdf_data_file,
+                           file_read_time_data_file,
+                           file_size_data_file,
+                           file_repeated_read_data_file):
+
+  #Open all files for writting
+  runtime_f    = open (runtime_cdf_data_file, "w+")
+  mcast_f      = open (mcast_benefit_cdf_data_file, "w+")
+  num_client_f = open (num_clients_cdf_data_file ,"w+")
+  img_size_f   = open (image_size_cdf_data_file ,"w+")
+  disk_idle_f  = open (disk_thread_idle_cdf_data_file ,"w+") 
+  concur_f     = open (client_concurrency_cdf_data_file ,"w+")
+  fread_f      = open (file_read_time_data_file ,"w+")
+  fsize_f      = open (file_size_data_file ,"w+")
+  frepeated_f  = open (file_repeated_read_data_file ,"w+")
+
+  #Begin Looping and we are gonna print in all files parallely
+  for k, s in server_list.items ():
+    if (int(s.serverid) in eliminated_server_list):
+      continue
+
+    if (s.imageblocks == 0):
+      continue
+
+    no_of_clients = len (s.client_list)
+    if (no_of_clients == 0):
+      continue
+
+    if (s.totalblocks_sent == 0):
+      continue
+
+    no_of_blocks_unicast = no_of_clients * s.imageblocks
+    mcast_f.write (str((no_of_blocks_unicast/s.totalblocks_sent) - 1) + "\n")
+    num_client_f.write (str(no_of_clients) + "\n")
+    img_size_f.write (str(s.imageblocks) + "\n")
+    fread_f.write (str(s.file_read_time) + "\n")
+    fsize_f.write (str(s.file_size_in_mb) + "\n")
+    frepeated_f.write (str(s.file_reread) + "\n")
+    
+    for kk, c in s.client_list.items ():
+      runtime_f.write (str(c.runtime) + "\n")
+      concur_f.write (str(c.concurrency_percentage) + "\n")
+
+#----------------------------------------------------------------------------------------------------------------
 #Main function
+#NOT ACTIVE ANYMORE
 def main_function ():
   server_list, run_statistics = begin_extracting ("messages.log") 
   

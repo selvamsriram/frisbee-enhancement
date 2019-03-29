@@ -79,8 +79,8 @@ def plot_mcast_vs_clients ():
   #plt.show()
   plt.savefig('mcast_vs_clients.png')
 
-def plot_concurrency():
-  r_data = np.loadtxt("concurrency_cdf.data")
+def plot_concurrency(client_concurrency_cdf_data_file):
+  r_data = np.loadtxt(client_concurrency_cdf_data_file)
   sorted_r_data = np.sort(r_data)
   yvals=np.arange(len(sorted_r_data))/float(len(sorted_r_data)-1)
   plt.plot(sorted_r_data,yvals, label='Concurrency')
@@ -92,17 +92,15 @@ def plot_concurrency():
 
 def file_read_graph (file_read_time_data_file, file_size_data_file, file_repeated_read_data_file):
   readtime_data = np.loadtxt (file_read_time_data_file)
-  size_data = np.loadtxt (file_size_data_file)
+  size_in_mb    = np.loadtxt (file_size_data_file)
   repeated_data = np.loadtxt (file_repeated_read_data_file)
-  x_series = np.arange (1, len (readtime_data)+1, 1)
-  size_in_mb = np.divide (size_data, (1024*1024))
 
   print ("Size and Read time")
   print ("------------------------------")
-  corr, _ = pearsonr(size_data, readtime_data)
+  corr, _ = pearsonr(size_in_mb, readtime_data)
   print('Pearsons correlation: %.3f' % corr)
   
-  corr, _ = spearmanr(size_data, readtime_data)
+  corr, _ = spearmanr(size_in_mb, readtime_data)
   print('Spearmans correlation: %.3f' % corr)
 
   print ("\nRepeated reads and Read time")
