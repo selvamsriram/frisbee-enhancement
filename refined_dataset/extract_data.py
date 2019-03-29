@@ -6,22 +6,25 @@ import datetime
 class server:
   def __init__(self, serverid):
     self.serverid = serverid
-    self.imageblocks = 0
+    self.imageblocks      = 0
     self.totalblocks_sent = 0
-    self.image_name = ""
-    self.client_list = {}
-    self.last_client = 0
-    self.active_clients = 0
-    self.something_wrong = False
+    self.image_name       = ""
+    self.client_list      = {}
+    self.last_client      = 0
+    self.active_clients   = 0
+    self.file_size_in_mb  = 0
+    self.file_read_time   = 0
+    self.file_reread      = 0
+    self.something_wrong  = False
 
 class client:
   def __init__(self, clientid):
     self.clientid = clientid
-    self.runtime = 0
+    self.runtime                       = 0
     self.total_concurrent_overlap_time = 0
-    self.concurrency_percentage = 0
-    self.concurrent_start = None
-    self.active = True 
+    self.concurrency_percentage        = 0
+    self.concurrent_start              = None
+    self.active                        = True 
 
 class run_stats:
   def __init__(self, key):
@@ -163,7 +166,20 @@ def begin_extracting (filename):
           server_list[words[0]] = s
         s = server_list [words[0]]
         s.totalblocks_sent = int(words[4])
-        
+      elif (len(words) == 8) and (words[7] == "repeated)"):
+        if (words[0] not in server_list):
+          s = server (words[0])
+          server_list[words[0]] = s
+        s = server_list [words[0]]
+        s.file_reread = int (words[6])
+      elif (len(words) == 11) and (words[1] == "file") and (words[2] == "read")  and (words[3] == "time:"):
+        if (words[0] not in server_list):
+          s = server (words[0])
+          server_list[words[0]] = s
+        s = server_list [words[0]]
+        s.file_read_time = float (words[4])
+        s.file_size_in_mb = s.imageblocks/ (1024*1024)
+
   return server_list, run_statistics 
 
 #----------------------------------------------------------------------------------------------------------------
@@ -200,6 +216,9 @@ def print_client_server_stats (server_list):
     print ("\nServer Id               : ", s.serverid)
     print ("Serving Image             : ", s.image_name)
     print ("Total clients served      : ", no_of_clients)
+    print ("File read time            : ", s.file_read_time)
+    print ("File size in MB           : ", s.file_size_in_mb)
+    print ("File repeated reads       : ", s.file_reread)
     print ("Total blocks on image     : ", s.imageblocks)
     print ("Total blocks on multicast : ", s.totalblocks_sent)
     print ("Total blocks on unicast   : ", no_of_blocks_unicast)
@@ -339,4 +358,4 @@ def main_function ():
   #print_image_based_stats (i_run_stats)
 
 #----------------------------------------------------------------------------------------------------------------
-main_function ()
+#main_function ()
