@@ -1,8 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.stats import pearsonr
+from scipy.stats import spearmanr
 
-def plot_runtime ():
-  r_data = np.loadtxt("runtime.data")
+def plot_runtime (runtime_cdf_data_file):
+  r_data = np.loadtxt(runtime_cdf_data_file)
   sorted_r_data = np.sort(r_data)
   yvals=np.arange(len(sorted_r_data))/float(len(sorted_r_data)-1)
   plt.plot(sorted_r_data,yvals, label='Runtime')
@@ -21,10 +23,10 @@ def plot_disk_idle ():
   plt.xlabel ("Disk Thread Idle (Ticks)")
   plt.ylabel ("Probability")
   plt.show()
-  #plt.savefig('image_size_cdf.png')
+  plt.savefig('disk_thread_idle_cdf.png')
 
-def plot_image_size():
-  r_data = np.loadtxt("image_size.data")
+def plot_image_size(image_size_cdf_data_file):
+  r_data = np.loadtxt(image_size_cdf_data_file)
   sorted_r_data = np.sort(r_data)
   yvals=np.arange(len(sorted_r_data))/float(len(sorted_r_data)-1)
   plt.plot(sorted_r_data,yvals, label='Image Size (MB)')
@@ -34,9 +36,9 @@ def plot_image_size():
   plt.show()
   plt.savefig('image_size_cdf.png')
 
-def plot_mcast_benefit():
+def plot_mcast_benefit(mcast_benefit_cdf_data_file):
   plt.clf ()
-  r_data = np.loadtxt("mcast_benefit.data")
+  r_data = np.loadtxt(mcast_benefit_cdf_data_file)
   sorted_r_data = np.sort(r_data)
   yvals=np.arange(len(sorted_r_data))/float(len(sorted_r_data)-1)
   plt.plot(sorted_r_data,yvals, label='Mcast benefit')
@@ -46,9 +48,9 @@ def plot_mcast_benefit():
   plt.show()
   plt.savefig('mcast_benefit_cdf.png')
 
-def plot_num_clients():
+def plot_num_clients(num_clients_cdf_data_file):
   plt.clf ()
-  r_data = np.loadtxt("num_clients.data")
+  r_data = np.loadtxt(num_clients_cdf_data_file)
   sorted_r_data = np.sort(r_data)
   yvals=np.arange(len(sorted_r_data))/float(len(sorted_r_data)-1)
   plt.plot(sorted_r_data,yvals, label='Number of Clients')
@@ -88,13 +90,68 @@ def plot_concurrency():
   plt.show()
   plt.savefig('concurrency_cdf.png')
 
+def file_read_graph (file_read_time_data_file, file_size_data_file, file_repeated_read_data_file):
+  readtime_data = np.loadtxt (file_read_time_data_file)
+  size_data = np.loadtxt (file_size_data_file)
+  repeated_data = np.loadtxt (file_repeated_read_data_file)
+  x_series = np.arange (1, len (readtime_data)+1, 1)
+  size_in_mb = np.divide (size_data, (1024*1024))
+
+  print ("Size and Read time")
+  print ("------------------------------")
+  corr, _ = pearsonr(size_data, readtime_data)
+  print('Pearsons correlation: %.3f' % corr)
+  
+  corr, _ = spearmanr(size_data, readtime_data)
+  print('Spearmans correlation: %.3f' % corr)
+
+  print ("\nRepeated reads and Read time")
+  print ("------------------------------")
+  corr, _ = pearsonr(repeated_data, readtime_data)
+  print('Pearsons correlation: %.3f' % corr)
+  
+  corr, _ = spearmanr(repeated_data, readtime_data)
+  print('Spearmans correlation: %.3f' % corr)
+
+  plt.plot(size_in_mb,readtime_data, 'o', color='blue')
+  plt.legend()
+  plt.xlabel ("Size in MB")
+  plt.ylabel ("Readtime in Seconds")
+  plt.show()
+  plt.savefig('file_size_vs_readtime.png')
+ 
+  plt.plot(size_in_mb, repeated_data, 'o', color='red')
+  plt.legend()
+  plt.xlabel ("Size in MB")
+  plt.ylabel ("Repeated reads")
+  plt.show()
+  plt.savefig('file_size_vs_repeated_reads.png')
+ 
+  '''
+  fig, ax1 = plt.subplots ()
+  color = 'tab:red'
+  ax1.set_xlabel('Size in MB')
+  ax1.set_ylabel('File read time (Secs)', color=color)
+  ax1.plot(size_in_mb, readtime_data, 'o', color=color)
+  ax1.tick_params(axis='y', labelcolor=color)
+
+  ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+
+  color = 'tab:blue'
+  ax2.set_ylabel('Repeated Reads', color=color)  # we already handled the x-label with ax1
+  ax2.plot(size_in_mb, repeated_data, color=color)
+  ax2.tick_params(axis='y', labelcolor=color)
+  
+  fig.tight_layout()  # otherwise the right y-label is slightly clipped
+  plt.show ()
+  '''
 def main():
   #plot_runtime ()
   #plot_mcast_benefit ()
   #plot_num_clients ()
   #plot_image_size()
   #plot_disk_idle ()
-  #plot_mcast_vs_clients ()
-  plot_concurrency ()
+  #plot_concurrency ()
+  file_read_graph ()
 
-main()
+#main()

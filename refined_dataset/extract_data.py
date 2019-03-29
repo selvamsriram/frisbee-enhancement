@@ -242,6 +242,64 @@ def print_client_server_stats (server_list):
   print ("List of them                     : ", servers_with_no_clients)
 
 #----------------------------------------------------------------------------------------------------------------
+def write_client_server_stats (server_list, op_filename):
+
+  if (op_filename == None):
+    print ("Output filename is not present")
+    return
+  
+  fhandle = open (op_filename, "w+")
+
+  servers_with_no_clients = []
+  for k, s in server_list.items ():
+    if (s.imageblocks == 0):
+      continue
+
+    no_of_clients = len (s.client_list)
+    if (no_of_clients == 0):
+      servers_with_no_clients.append (s.serverid)
+      continue
+
+    no_of_blocks_unicast = no_of_clients * s.imageblocks
+    multicast_savings = (no_of_blocks_unicast - s.totalblocks_sent)
+
+    #mcast_benefit.data
+    #print ((no_of_blocks_unicast/s.totalblocks_sent)-1)
+
+    #num_clients.data
+    #print (no_of_clients)
+
+    #image_size.data
+    #print (s.imageblocks/1024)
+
+    fhandle.write ("\nServer Id               : ", s.serverid)
+    fhandle.write ("Serving Image             : ", s.image_name)
+    fhandle.write ("Total clients served      : ", no_of_clients)
+    fhandle.write ("File read time            : ", s.file_read_time)
+    fhandle.write ("File size in MB           : ", s.file_size_in_mb)
+    fhandle.write ("File repeated reads       : ", s.file_reread)
+    fhandle.write ("Total blocks on image     : ", s.imageblocks)
+    fhandle.write ("Total blocks on multicast : ", s.totalblocks_sent)
+    fhandle.write ("Total blocks on unicast   : ", no_of_blocks_unicast)
+    fhandle.write ("Saving using multicast    : ", multicast_savings)
+    if (s.totalblocks_sent != 0):
+      fhandle.write ("Ucast/Mcast ratio         : ", no_of_blocks_unicast/s.totalblocks_sent)
+      fhandle.write ("Something wrong           : False")
+    else:
+      s.something_wrong = True
+      fhandle.write ("Something wrong           : True")
+
+    for kk, c in s.client_list.items ():
+      fhandle.write ("    Client ID       : ", c.clientid)
+      fhandle.write ("    Runtime         : ", c.runtime)
+      fhandle.write ("    Concurrent time : ", c.total_concurrent_overlap_time)
+      fhandle.write ("    Concurrency     : ", c.concurrency_percentage, "%")
+      fhandle.write ("    Concurrent Start: ", c.concurrent_start)
+
+  fhandle.write ("\nNumber of servers with 0 clients : ", len(servers_with_no_clients))
+  fhandle.write ("List of them                     : ", servers_with_no_clients)
+
+#----------------------------------------------------------------------------------------------------------------
 def get_image_based_stats (server_list):
   image_based_stats = {}
 
