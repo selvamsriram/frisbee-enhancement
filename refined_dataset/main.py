@@ -11,6 +11,9 @@ num_clients_cdf_data_file = "num_clients_cdf_input.data"
 image_size_cdf_data_file = "image_size_cdf_input.data"
 disk_thread_idle_cdf_data_file = "disk_thread_idle_cdf_input.data"
 client_concurrency_cdf_data_file = "client_concurrency_cdf_input.data"
+p_file_read_time_data_file = "p_file_read_time.data"
+p_file_size_data_file = "p_file_size.data"
+p_file_repeated_read_data_file = "p_file_read_repeated.data"
 file_read_time_data_file = "file_read_time.data"
 file_size_data_file = "file_size.data"
 file_repeated_read_data_file = "file_read_repeated.data"
@@ -27,6 +30,7 @@ parser.add_argument ("-mcdf", "--mcast-cdf", help="CDF of multicast benefit", ac
 parser.add_argument ("-ncdf", "--nclients-cdf", help="CDF of number of clients", action="store_true")
 parser.add_argument ("-iscdf", "--image-size-cdf", help="CDF of image sizes served by various frisbee instances", action="store_true")
 parser.add_argument ("-ccdf", "--concurrency-cdf", help="CDF of client concurrency", action="store_true")
+parser.add_argument ("-chist", "--concurrency-hist", help="Histogram of client concurrency", action="store_true")
 parser.add_argument ("-dicdf", "--disk-idle-cdf", help="CDF of disk idle thread stats", action="store_true")
 parser.add_argument ("-frscatter", "--file-read-scatter-plot", help="Scatter plot of file read stats", action="store_true")
 #parser.add_argument ("-cache", "--cache-enabled", help="Use saved data from prev run to make CDFs and charts", action="store_true")
@@ -58,7 +62,10 @@ if (args.ifile != None):
                             client_concurrency_cdf_data_file,
                             file_read_time_data_file,
                             file_size_data_file,
-                            file_repeated_read_data_file)
+                            file_repeated_read_data_file,
+                            p_file_read_time_data_file,
+                            p_file_size_data_file,
+                            p_file_repeated_read_data_file)
 #-----------------------------------------------------------------------------------
 #Box-Whisker Plot Image size vs Time taken
 if (args.boxplot == True):
@@ -140,6 +147,19 @@ if (args.concurrency_cdf == True):
   print ("Client Concurrency CDF saved in concurrency_cdf.png")
 
 #-----------------------------------------------------------------------------------
+#Client Concurrency Histogram 
+if (args.concurrency_hist == True):
+  try:
+    fhandle = open(client_concurrency_cdf_data_file, 'r')
+  except filenotfounderror:
+    print (client_concurrency_cdf_data_file, "file doesn't exist")
+    sys.exit ()
+
+  cp.plot_concurrency_histogram (client_concurrency_cdf_data_file)
+  print ("Client Concurrency CDF saved in concurrency_hist.png")
+
+
+#-----------------------------------------------------------------------------------
 #File Read Scatter Plot
 if (args.file_read_scatter_plot == True):
   try:
@@ -153,10 +173,32 @@ if (args.file_read_scatter_plot == True):
     print (file_size_data_file, "file doesn't exist")
     sys.exit ()
   try:
+    fhandle = open(num_clients_cdf_data_file, 'r')
+  except filenotfounderror:
+    print (num_clients_cdf_data_file, "file doesn't exist")
+    sys.exit ()
+  try:
     fhandle = open(file_repeated_read_data_file, 'r')
   except filenotfounderror:
     print (file_repeated_read_data_file, "file doesn't exist")
     sys.exit ()
+  try:
+    fhandle = open(p_file_read_time_data_file, 'r')
+  except filenotfounderror:
+    print (p_file_read_time_data_file, "file doesn't exist")
+    sys.exit ()
+  try:
+    fhandle = open(p_file_size_data_file, 'r')
+  except filenotfounderror:
+    print (p_file_size_data_file, "file doesn't exist")
+    sys.exit ()
+  try:
+    fhandle = open(p_file_repeated_read_data_file, 'r')
+  except filenotfounderror:
+    print (p_file_repeated_read_data_file, "file doesn't exist")
+    sys.exit ()
 
-  cp.file_read_graph (file_read_time_data_file, file_size_data_file, file_repeated_read_data_file)
+
+  cp.file_read_graph (file_read_time_data_file, file_size_data_file, num_clients_cdf_data_file, file_repeated_read_data_file,
+                      p_file_read_time_data_file, p_file_size_data_file, p_file_repeated_read_data_file)
 #-----------------------------------------------------------------------------------

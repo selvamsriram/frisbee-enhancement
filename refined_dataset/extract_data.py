@@ -407,7 +407,10 @@ def create_all_data_files (server_list,
                            client_concurrency_cdf_data_file,
                            file_read_time_data_file,
                            file_size_data_file,
-                           file_repeated_read_data_file):
+                           file_repeated_read_data_file,
+                           p_file_read_time_data_file,
+                           p_file_size_data_file,
+                           p_file_repeated_read_data_file):
 
   #Open all files for writting
   runtime_f    = open (runtime_cdf_data_file, "w+")
@@ -419,6 +422,9 @@ def create_all_data_files (server_list,
   fread_f      = open (file_read_time_data_file ,"w+")
   fsize_f      = open (file_size_data_file ,"w+")
   frepeated_f  = open (file_repeated_read_data_file ,"w+")
+  p_fread_f    = open (p_file_read_time_data_file ,"w+")
+  p_fsize_f    = open (p_file_size_data_file ,"w+")
+  p_frepeated_f= open (p_file_repeated_read_data_file ,"w+")
 
   #Begin Looping and we are gonna print in all files parallely
   for k, s in server_list.items ():
@@ -439,9 +445,14 @@ def create_all_data_files (server_list,
     mcast_f.write (str((no_of_blocks_unicast/s.totalblocks_sent) - 1) + "\n")
     num_client_f.write (str(no_of_clients) + "\n")
     img_size_f.write (str(s.imageblocks) + "\n")
-    fread_f.write (str(s.file_read_time) + "\n")
-    fsize_f.write (str(s.file_size_in_mb) + "\n")
-    frepeated_f.write (str(s.file_reread) + "\n")
+    if ("/proj" not in s.image_name):
+      fread_f.write (str(s.file_read_time) + "\n")
+      fsize_f.write (str(s.file_size_in_mb) + "\n")
+      frepeated_f.write (str(s.file_reread) + "\n")
+    else:
+      p_fread_f.write (str(s.file_read_time) + "\n")
+      p_fsize_f.write (str(s.file_size_in_mb) + "\n")
+      p_frepeated_f.write (str(s.file_reread) + "\n")
     
     for kk, c in s.client_list.items ():
       runtime_f.write (str(c.runtime) + "\n")

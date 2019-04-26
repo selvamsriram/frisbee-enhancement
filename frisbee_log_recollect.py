@@ -57,7 +57,7 @@ def collect_data_per_node (es):
                                     ],
                             "filter": [ 
                                     #{ "range": { "@timestamp": { "gte": "2019-01-21", "lte": "2019-01-25", "time_zone": "-06:00"}}}
-                                     { "range": { "@timestamp": { "gte": "2019-03-05", "time_zone": "-06:00"}}}
+                                     { "range": { "@timestamp": { "gte": "2019-04-10", "time_zone": "-06:00"}}}
                                       ]
                           }
                 },

@@ -90,40 +90,57 @@ def plot_concurrency(client_concurrency_cdf_data_file):
   plt.show()
   plt.savefig('concurrency_cdf.png')
 
-def file_read_graph (file_read_time_data_file, file_size_data_file, file_repeated_read_data_file):
+def plot_concurrency_histogram (client_concurrency_cdf_data_file):
+  r_data = np.loadtxt(client_concurrency_cdf_data_file)
+  plt.hist (r_data, density=0, bins=10)
+  plt.legend()
+  plt.xlabel ("% of concurrency")
+  plt.show()
+  plt.savefig('concurrency_hist.png')
+ 
+def file_read_graph (file_read_time_data_file, file_size_data_file, num_clients_cdf_data_file, file_repeated_read_data_file,
+                     p_file_read_time_data_file, p_file_size_data_file, p_file_repeated_read_data_file):
   readtime_data = np.loadtxt (file_read_time_data_file)
   size_in_mb    = np.loadtxt (file_size_data_file)
+  no_of_clients = np.loadtxt (num_clients_cdf_data_file)
   repeated_data = np.loadtxt (file_repeated_read_data_file)
 
+  '''
   print ("Size and Read time")
-  print ("------------------------------")
+  print ("----------------------------------------")
   corr, _ = pearsonr(size_in_mb, readtime_data)
   print('Pearsons correlation: %.3f' % corr)
   
   corr, _ = spearmanr(size_in_mb, readtime_data)
   print('Spearmans correlation: %.3f' % corr)
 
-  print ("\nRepeated reads and Read time")
-  print ("------------------------------")
-  corr, _ = pearsonr(repeated_data, readtime_data)
+  print ("\nNumber of Clients and Repeated reads")
+  print ("----------------------------------------")
+  corr, _ = pearsonr(no_of_clients, repeated_data)
   print('Pearsons correlation: %.3f' % corr)
   
-  corr, _ = spearmanr(repeated_data, readtime_data)
+  corr, _ = spearmanr(no_of_clients, repeated_data)
   print('Spearmans correlation: %.3f' % corr)
+  '''
 
   plt.plot(size_in_mb,readtime_data, 'o', color='blue')
-  plt.legend()
   plt.xlabel ("Size in MB")
   plt.ylabel ("Readtime in Seconds")
+  readtime_data = np.loadtxt (p_file_read_time_data_file)
+  size_in_mb    = np.loadtxt (p_file_size_data_file)
+  plt.plot(size_in_mb,readtime_data, 'o', color='red')
+  plt.legend()
   plt.show()
   plt.savefig('file_size_vs_readtime.png')
  
-  plt.plot(size_in_mb, repeated_data, 'o', color='red')
+  '''
+  plt.plot(no_of_clients, repeated_data, 'o', color='red')
   plt.legend()
-  plt.xlabel ("Size in MB")
+  plt.xlabel ("Number of Clients")
   plt.ylabel ("Repeated reads")
   plt.show()
-  plt.savefig('file_size_vs_repeated_reads.png')
+  plt.savefig('no_of_clients_vs_repeated_reads.png')
+  '''
  
   '''
   fig, ax1 = plt.subplots ()
