@@ -16,6 +16,9 @@ class server:
     self.file_read_time   = 0
     self.file_reread      = 0
     self.something_wrong  = False
+    self.client_groups    = 0
+    self.te_mcast         = 0
+    self.te_swp2p         = 0
 
 class client:
   def __init__(self, clientid):
@@ -67,6 +70,32 @@ def remove_concurrency_from_existing_client (server, time):
       diff = time - c.concurrent_start
       c.total_concurrent_overlap_time += diff.total_seconds ()
       c.concurrent_start = None 
+
+#----------------------------------------------------------------------------------------------------------------
+def count_client_group (server):
+  threshold = 90
+  more_than_threshold = 0
+  less_than_threshold = 0
+  groups = 0
+
+  for kk, c in server.client_list.items ():
+    if (c.concurrency_percentage > threshold):
+      more_than_threshold += 1
+    else:
+      less_than_threshold += 1
+
+  if (more_than_threshold > 0):
+    groups = 1
+
+  groups = groups + less_than_threshold
+  server.client_groups = groups
+  return
+
+#----------------------------------------------------------------------------------------------------------------
+def calculate_transfer_efficiency (server):
+  if (server.client_groups != 0 and server.totalblocks_sent != 0):
+    server.te_mcast = (server.imageblocks/ server.totalblocks_sent)  #S/T
+    server.te_swp2p = (1/server.client_groups) #1/G
 
 #----------------------------------------------------------------------------------------------------------------
 def begin_extracting (filename):
@@ -179,6 +208,10 @@ def begin_extracting (filename):
         s = server_list [words[0]]
         s.file_read_time = float (words[4])
         s.file_size_in_mb = s.imageblocks/ (1024)
+        # When "file read time" is encountered the server is exiting, this means we can calculate the number of groups here
+        count_client_group (s)
+        #Compute the transfer efficiency of different types
+        calculate_transfer_efficiency (s)
 
   return server_list, run_statistics 
 
@@ -202,7 +235,6 @@ def print_client_server_stats (server_list):
       continue
 
     no_of_blocks_unicast = no_of_clients * s.imageblocks
-    multicast_savings = (no_of_blocks_unicast - s.totalblocks_sent)
 
     print ("\nServer Id               : ", s.serverid)
     print ("Serving Image             : ", s.image_name)
@@ -212,8 +244,17 @@ def print_client_server_stats (server_list):
     print ("File repeated reads       : ", s.file_reread)
     print ("Total blocks on image     : ", s.imageblocks)
     print ("Total blocks on multicast : ", s.totalblocks_sent)
-    print ("Total blocks on unicast   : ", no_of_blocks_unicast)
-    print ("Saving using multicast    : ", multicast_savings)
+    print ("Total blocks if unicast   : ", no_of_blocks_unicast)
+    print ("SWP2P Group Count         : ", s.client_groups)
+    if (s.te_mcast == 0):
+      print ("Transfer efficiency MCAST : ", "NA")
+    else:
+      print ("Transfer efficiency MCAST : ", s.te_mcast)
+    if (s.te_swp2p == 0):
+      print ("Transfer efficiency SWP2P : ", "NA") 
+    else:
+      print ("Transfer efficiency SWP2P : ", s.te_swp2p) 
+
     if (s.totalblocks_sent != 0):
       print ("Ucast/Mcast ratio         : ", no_of_blocks_unicast/s.totalblocks_sent)
       print ("Something wrong           : False")
@@ -252,7 +293,6 @@ def write_client_server_stats (server_list, op_filename):
       continue
 
     no_of_blocks_unicast = no_of_clients * s.imageblocks
-    multicast_savings = (no_of_blocks_unicast - s.totalblocks_sent)
 
     fhandle.write ("\nServer Id               : " + str(s.serverid))
     fhandle.write ("\n")
@@ -270,10 +310,22 @@ def write_client_server_stats (server_list, op_filename):
     fhandle.write ("\n")
     fhandle.write ("Total blocks on multicast : " + str(s.totalblocks_sent))
     fhandle.write ("\n")
-    fhandle.write ("Total blocks on unicast   : " + str(no_of_blocks_unicast))
+    fhandle.write ("Total blocks if unicast   : " + str(no_of_blocks_unicast))
     fhandle.write ("\n")
-    fhandle.write ("Saving using multicast    : " + str(multicast_savings))
+    fhandle.write ("SWP2P Group Count         : " + str(s.client_groups))
     fhandle.write ("\n")
+
+    if (s.te_mcast == 0):
+      fhandle.write ("Transfer efficiency MCAST : "+ "NA")
+    else:
+      fhandle.write ("Transfer efficiency MCAST : "+ str(s.te_mcast))
+    fhandle.write ("\n")
+    if (s.te_swp2p == 0):
+      fhandle.write ("Transfer efficiency SWP2P : "+ "NA") 
+    else:
+      fhandle.write ("Transfer efficiency SWP2P : "+ str(s.te_swp2p))
+    fhandle.write ("\n")
+
     if (s.totalblocks_sent != 0):
       fhandle.write ("Ucast/Mcast ratio         : " + str(no_of_blocks_unicast/s.totalblocks_sent))
       fhandle.write ("\n")
@@ -410,7 +462,9 @@ def create_all_data_files (server_list,
                            file_repeated_read_data_file,
                            p_file_read_time_data_file,
                            p_file_size_data_file,
-                           p_file_repeated_read_data_file):
+                           p_file_repeated_read_data_file,
+                           file_te_mcast,
+                           file_te_swp2p):
 
   #Open all files for writting
   runtime_f    = open (runtime_cdf_data_file, "w+")
@@ -425,6 +479,12 @@ def create_all_data_files (server_list,
   p_fread_f    = open (p_file_read_time_data_file ,"w+")
   p_fsize_f    = open (p_file_size_data_file ,"w+")
   p_frepeated_f= open (p_file_repeated_read_data_file ,"w+")
+  te_mcast_f   = open (file_te_mcast, "w+")
+  te_swp2p_f   = open (file_te_swp2p, "w+")
+
+  one_c_s_te_mcast_1 = 0
+  te_mcast_1_s = 0
+  one_c_s = 0
 
   #Begin Looping and we are gonna print in all files parallely
   for k, s in server_list.items ():
@@ -438,6 +498,9 @@ def create_all_data_files (server_list,
     if (no_of_clients == 0):
       continue
 
+    if (no_of_clients == 1):
+       one_c_s += 1
+
     if (s.totalblocks_sent == 0):
       continue
 
@@ -445,6 +508,16 @@ def create_all_data_files (server_list,
     mcast_f.write (str((no_of_blocks_unicast/s.totalblocks_sent) - 1) + "\n")
     num_client_f.write (str(no_of_clients) + "\n")
     img_size_f.write (str(s.imageblocks) + "\n")
+
+    if (s.te_mcast != 0 and s.te_swp2p != 0):
+      if (s.te_mcast == 1):
+        te_mcast_1_s += 1
+        if (no_of_clients == 1):
+         one_c_s_te_mcast_1 += 1
+          
+      te_mcast_f.write (str(s.te_mcast) + "\n")
+      te_swp2p_f.write (str(s.te_swp2p) + "\n")
+
     if ("/proj" not in s.image_name):
       fread_f.write (str(s.file_read_time) + "\n")
       fsize_f.write (str(s.file_size_in_mb) + "\n")
@@ -458,6 +531,9 @@ def create_all_data_files (server_list,
       runtime_f.write (str(c.runtime) + "\n")
       concur_f.write (str(c.concurrency_percentage) + "\n")
 
+  print ("Number of 1 client servers :",  one_c_s)
+  print ("Number of 1 client servers with te_mcast 1: ", one_c_s_te_mcast_1)
+  print ("Number of te_mcast 1 servers : ", te_mcast_1_s)
 #----------------------------------------------------------------------------------------------------------------
 #Main function
 #NOT ACTIVE ANYMORE
